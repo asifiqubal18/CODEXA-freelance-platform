@@ -15,8 +15,13 @@ import Footer from './components/Footer';
 
 import AuthModal from './components/AuthModal';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { initialPortfolioData } from './data/portfolioData';
-import { servicesData as initialServicesData } from './data/servicesData';
+import { 
+  fetchProjects, 
+  createProject, 
+  deleteProjectFromDB, 
+  fetchServices, 
+  updateServiceInDB 
+} from './lib/dataService';
 
 function MainAppContent() {
   const { isAdmin, isAuthModalOpen, setIsAuthModalOpen } = useAuth();
@@ -35,40 +40,27 @@ function MainAppContent() {
   // Edit Service Price Modal State
   const [editingService, setEditingService] = useState(null);
 
-  // Services State (Initial + localStorage overrides)
-  const [services, setServices] = useState(() => {
-    try {
-      const savedServices = localStorage.getItem('codexa_custom_services');
-      if (savedServices) {
-        return JSON.parse(savedServices);
-      }
-    } catch (err) {
-      console.error('Error loading custom services:', err);
-    }
-    return initialServicesData;
-  });
-
-  // Portfolio State (Initial + localStorage)
-  const [projects, setProjects] = useState(() => {
-    try {
-      const savedProjects = localStorage.getItem('codexa_projects_list');
-      if (savedProjects) {
-        return JSON.parse(savedProjects);
-      }
-      const savedCustom = localStorage.getItem('codexa_custom_projects');
-      if (savedCustom) {
-        const parsedCustom = JSON.parse(savedCustom);
-        return [...parsedCustom, ...initialPortfolioData];
-      }
-    } catch (err) {
-      console.error('Error loading projects:', err);
-    }
-    return initialPortfolioData;
-  });
+  // Services State
+  const [services, setServices] = useState([]);
+  
+  // Portfolio State
+  const [projects, setProjects] = useState([]);
 
   // Contact Form Prefills
   const [selectedService, setSelectedService] = useState(null);
   const [prefilledEstimate, setPrefilledEstimate] = useState(null);
+
+  // Load Data on Mount
+  useEffect(() => {
+    async function loadData() {
+      const loadedServices = await fetchServices();
+      setServices(loadedServices);
+
+      const loadedProjects = await fetchProjects();
+      setProjects(loadedProjects);
+    }
+    loadData();
+  }, []);
 
   // Apply theme class to <html>
   useEffect(() => {
@@ -90,7 +82,7 @@ function MainAppContent() {
   };
 
   // Add Project Handler
-  const handleAddProject = (newProject) => {
+  const handleAddProject = async (newProject) => {
     if (!isAdmin) {
       alert('Access Denied: Only authenticated Admin users can add projects.');
       return;
@@ -98,15 +90,17 @@ function MainAppContent() {
     const updated = [newProject, ...projects];
     setProjects(updated);
 
+    // Save to LocalStorage
     try {
       localStorage.setItem('codexa_projects_list', JSON.stringify(updated));
-    } catch (err) {
-      console.error('Error saving projects:', err);
-    }
+    } catch (err) {}
+
+    // Save to Supabase DB if connected
+    await createProject(newProject);
   };
 
   // Delete Any Project Handler (Default or Custom)
-  const handleDeleteProject = (projId) => {
+  const handleDeleteProject = async (projId) => {
     if (!isAdmin) {
       alert('Access Denied: Only authenticated Admin users can delete projects.');
       return;
@@ -117,14 +111,15 @@ function MainAppContent() {
 
       try {
         localStorage.setItem('codexa_projects_list', JSON.stringify(updated));
-      } catch (err) {
-        console.error('Error deleting project:', err);
-      }
+      } catch (err) {}
+
+      // Delete from Supabase DB if connected
+      await deleteProjectFromDB(projId);
     }
   };
 
   // Admin Save Service Price/Details
-  const handleSaveService = (updatedService) => {
+  const handleSaveService = async (updatedService) => {
     if (!isAdmin) {
       alert('Access Denied: Admin privileges required to modify prices.');
       return;
@@ -134,9 +129,10 @@ function MainAppContent() {
 
     try {
       localStorage.setItem('codexa_custom_services', JSON.stringify(updated));
-    } catch (err) {
-      console.error('Error saving services:', err);
-    }
+    } catch (err) {}
+
+    // Update in Supabase DB if connected
+    await updateServiceInDB(updatedService);
   };
 
   const handleSelectService = (service) => {

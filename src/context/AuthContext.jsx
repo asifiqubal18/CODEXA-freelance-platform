@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase, isSupabaseConfigured } from '../lib/supabaseClient';
 
 const AuthContext = createContext();
 
@@ -26,11 +27,69 @@ export function AuthProvider({ children }) {
     } catch (e) {
       console.error('Error reading auth state:', e);
     }
-    // Default to guest (null)
     return null;
   });
 
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  // Sync Supabase Auth Listener if configured
+  useEffect(() => {
+    if (isSupabaseConfigured && supabase) {
+      // Check current session
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user) {
+          fetchUserProfile(session.user);
+        }
+      });
+
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+        if (session?.user) {
+          fetchUserProfile(session.user);
+        } else {
+          // If signed out from Supabase but not in demo mode
+          if (user && !user.isDemo) {
+            setUser(null);
+          }
+        }
+      });
+
+      return () => subscription.unsubscribe();
+    }
+  }, []);
+
+  const fetchUserProfile = async (sbUser) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', sbUser.id)
+        .single();
+
+      if (!error && data) {
+        const uObj = {
+          id: sbUser.id,
+          name: data.name || sbUser.email.split('@')[0],
+          email: sbUser.email,
+          role: data.role || 'client',
+          avatar: data.avatar || DEMO_CLIENT.avatar,
+          isDemo: false
+        };
+        setUser(uObj);
+      } else {
+        const fallback = {
+          id: sbUser.id,
+          name: sbUser.email.split('@')[0],
+          email: sbUser.email,
+          role: sbUser.email.includes('admin') ? 'admin' : 'client',
+          avatar: DEMO_CLIENT.avatar,
+          isDemo: false
+        };
+        setUser(fallback);
+      }
+    } catch (e) {
+      console.error('Error fetching Supabase profile:', e);
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -40,41 +99,94 @@ export function AuthProvider({ children }) {
     }
   }, [user]);
 
-  const login = (email, password) => {
-    if (email.toLowerCase().includes('admin') || email === DEMO_ADMIN.email) {
-      setUser(DEMO_ADMIN);
-      return { success: true, user: DEMO_ADMIN };
+  const login = async (email, password) => {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) {
+        // Fallback demo check if Supabase login fails or for local demo credentials
+        if (email.toLowerCase().includes('admin') || email === DEMO_ADMIN.email) {
+          setUser({ ...DEMO_ADMIN, isDemo: true });
+          return { success: true, user: DEMO_ADMIN };
+        }
+        return { success: false, error: error.message };
+      }
+
+      if (data.user) {
+        await fetchUserProfile(data.user);
+        return { success: true, user: data.user };
+      }
     }
+
+    // Default Fallback Login
+    if (email.toLowerCase().includes('admin') || email === DEMO_ADMIN.email) {
+      const adminUser = { ...DEMO_ADMIN, isDemo: true };
+      setUser(adminUser);
+      return { success: true, user: adminUser };
+    }
+
     const clientUser = {
       name: email.split('@')[0],
       email: email,
       role: 'client',
-      avatar: DEMO_CLIENT.avatar
+      avatar: DEMO_CLIENT.avatar,
+      isDemo: true
     };
     setUser(clientUser);
     return { success: true, user: clientUser };
   };
 
   const loginAsAdminDemo = () => {
-    setUser(DEMO_ADMIN);
+    setUser({ ...DEMO_ADMIN, isDemo: true });
   };
 
   const loginAsClientDemo = () => {
-    setUser(DEMO_CLIENT);
+    setUser({ ...DEMO_CLIENT, isDemo: true });
   };
 
-  const register = (name, email, password) => {
+  const register = async (name, email, password) => {
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { name, role: 'client' }
+        }
+      });
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
+      const newUser = {
+        name,
+        email,
+        role: 'client',
+        avatar: DEMO_CLIENT.avatar,
+        isDemo: false
+      };
+      setUser(newUser);
+      return { success: true, user: newUser };
+    }
+
     const newUser = {
       name,
       email,
       role: 'client',
-      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80'
+      avatar: DEMO_CLIENT.avatar,
+      isDemo: true
     };
     setUser(newUser);
     return { success: true, user: newUser };
   };
 
-  const logout = () => {
+  const logout = async () => {
+    if (isSupabaseConfigured && supabase && !user?.isDemo) {
+      await supabase.auth.signOut();
+    }
     setUser(null);
   };
 
@@ -87,6 +199,7 @@ export function AuthProvider({ children }) {
         user,
         isAdmin,
         isClient,
+        isSupabaseConfigured,
         isAuthModalOpen,
         setIsAuthModalOpen,
         login,
