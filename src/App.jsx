@@ -23,7 +23,11 @@ import {
   createProject, 
   deleteProjectFromDB, 
   fetchServices, 
-  updateServiceInDB 
+  updateServiceInDB,
+  fetchContactInfoFromDB,
+  updateContactInfoInDB,
+  fetchEstimatorConfigFromDB,
+  updateEstimatorConfigInDB
 } from './lib/dataService';
 
 const INITIAL_TECH_ITEMS = [
@@ -68,17 +72,11 @@ function MainAppContent() {
   const [projects, setProjects] = useState([]);
 
   // Contact Info State
-  const [contactInfo, setContactInfo] = useState(() => {
-    try {
-      const saved = localStorage.getItem('codexa_contact_info');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
-    return {
-      email: 'hello@codexa.io',
-      phone: '+1 (800) 555-CODEXA',
-      guarantee: 'Within 4 Business Hours',
-      availability: 'Available for Q3/Q4 Project Bookings'
-    };
+  const [contactInfo, setContactInfo] = useState({
+    email: 'hello@codexa.io',
+    phone: '+1 (800) 555-CODEXA',
+    guarantee: 'Within 4 Business Hours',
+    availability: 'Available for Q3/Q4 Project Bookings'
   });
 
   // Tech Items State
@@ -91,26 +89,9 @@ function MainAppContent() {
   });
 
   // Estimator Config Pricing Matrix State
-  const [estimatorConfig, setEstimatorConfig] = useState(() => {
-    try {
-      const saved = localStorage.getItem('codexa_estimator_config');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
-    return {
-      platforms: {
-        'web-app': 2400,
-        'mobile-app': 3200,
-        'ecommerce': 2800,
-        'ai-automation': 3000,
-        'full-platform': 5500
-      },
-      features: {
-        'auth': 400,
-        'payments': 500,
-        'admin': 650,
-        'ai': 800
-      }
-    };
+  const [estimatorConfig, setEstimatorConfig] = useState({
+    platforms: { 'web-app': 2400, 'mobile-app': 3200, 'ecommerce': 2800, 'ai-automation': 3000, 'full-platform': 5500 },
+    features: { 'auth': 400, 'payments': 500, 'admin': 650, 'ai': 800 }
   });
 
   // Contact Form Prefills
@@ -125,6 +106,12 @@ function MainAppContent() {
 
       const loadedProjects = await fetchProjects();
       setProjects(loadedProjects);
+
+      const loadedContact = await fetchContactInfoFromDB();
+      if (loadedContact) setContactInfo(loadedContact);
+
+      const loadedConfig = await fetchEstimatorConfigFromDB();
+      if (loadedConfig) setEstimatorConfig(loadedConfig);
     }
     loadData();
   }, []);
@@ -208,11 +195,13 @@ function MainAppContent() {
   };
 
   // Admin Save Contact Info
-  const handleSaveContact = (updatedContact) => {
+  const handleSaveContact = async (updatedContact) => {
     setContactInfo(updatedContact);
     try {
       localStorage.setItem('codexa_contact_info', JSON.stringify(updatedContact));
     } catch (e) {}
+
+    await updateContactInfoInDB(updatedContact);
   };
 
   // Admin Save Tech Stack Item
@@ -237,11 +226,13 @@ function MainAppContent() {
   };
 
   // Admin Save Estimator Config Pricing Matrix
-  const handleSaveEstimatorConfig = (newConfig) => {
+  const handleSaveEstimatorConfig = async (newConfig) => {
     setEstimatorConfig(newConfig);
     try {
       localStorage.setItem('codexa_estimator_config', JSON.stringify(newConfig));
     } catch (e) {}
+
+    await updateEstimatorConfigInDB(newConfig);
   };
 
   const handleSelectService = (service) => {

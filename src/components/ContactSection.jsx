@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Phone, MapPin, Send, CheckCircle2, Clock, Calendar, Sparkles, Edit3 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { submitInquiryToDB } from '../lib/dataService';
 import '../styles/Contact.css';
 
 export default function ContactSection({ contactInfo, selectedService, prefilledEstimate, onEditContact }) {
@@ -27,10 +28,19 @@ export default function ContactSection({ contactInfo, selectedService, prefilled
     }
   }, [prefilledEstimate]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitted(true);
+
+    await submitInquiryToDB({
+      name,
+      email,
+      serviceType,
+      budgetRange,
+      message
+    });
   };
+
 
   const info = contactInfo || {
     email: 'hello@codexa.io',

@@ -1,6 +1,10 @@
--- CODEXA Supabase Database Schema (Updated RLS Policies for Admin & Public Access)
+-- ========================================================
+-- CODEXA Complete Database Schema for Supabase / PostgreSQL
+-- ========================================================
 
--- 1. Create Profiles Table for User Roles (Admin vs Client)
+-- --------------------------------------------------------
+-- 1. PROFILES TABLE (User Roles & Accounts)
+-- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
   name TEXT,
@@ -10,19 +14,15 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- Enable RLS on Profiles
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public profiles view" ON public.profiles;
+CREATE POLICY "Public profiles view" ON public.profiles FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public profiles insert" ON public.profiles;
+CREATE POLICY "Public profiles insert" ON public.profiles FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Public profiles update" ON public.profiles;
+CREATE POLICY "Public profiles update" ON public.profiles FOR UPDATE USING (true);
 
-DROP POLICY IF EXISTS "Public profiles are viewable by everyone" ON public.profiles;
-CREATE POLICY "Public profiles are viewable by everyone" ON public.profiles FOR SELECT USING (true);
-
-DROP POLICY IF EXISTS "Allow all profile inserts" ON public.profiles;
-CREATE POLICY "Allow all profile inserts" ON public.profiles FOR INSERT WITH CHECK (true);
-
-DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
-CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (true);
-
--- Trigger to automatically create profile on signup
+-- Automatic Profile Creation Trigger on Auth Signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -38,12 +38,15 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-CREATE OR REPLACE TRIGGER on_auth_user_created
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
 
 
--- 2. Create Projects Table for Client Portfolio Showcase
+-- --------------------------------------------------------
+-- 2. PROJECTS TABLE (Client Portfolio Showcase)
+-- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.projects (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
@@ -59,23 +62,20 @@ CREATE TABLE IF NOT EXISTS public.projects (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- Enable RLS on Projects
 ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Projects are viewable by everyone" ON public.projects;
-CREATE POLICY "Projects are viewable by everyone" ON public.projects FOR SELECT USING (true);
-
-DROP POLICY IF EXISTS "Allow project inserts" ON public.projects;
-CREATE POLICY "Allow project inserts" ON public.projects FOR INSERT WITH CHECK (true);
-
-DROP POLICY IF EXISTS "Allow project deletes" ON public.projects;
-CREATE POLICY "Allow project deletes" ON public.projects FOR DELETE USING (true);
-
-DROP POLICY IF EXISTS "Allow project updates" ON public.projects;
-CREATE POLICY "Allow project updates" ON public.projects FOR UPDATE USING (true);
+DROP POLICY IF EXISTS "Projects view" ON public.projects;
+CREATE POLICY "Projects view" ON public.projects FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Projects insert" ON public.projects;
+CREATE POLICY "Projects insert" ON public.projects FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Projects delete" ON public.projects;
+CREATE POLICY "Projects delete" ON public.projects FOR DELETE USING (true);
+DROP POLICY IF EXISTS "Projects update" ON public.projects;
+CREATE POLICY "Projects update" ON public.projects FOR UPDATE USING (true);
 
 
--- 3. Create Services Table for Agency Offerings & Pricing
+-- --------------------------------------------------------
+-- 3. SERVICES TABLE (Agency Offerings & Pricing)
+-- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.services (
   id TEXT PRIMARY KEY,
   category TEXT NOT NULL,
@@ -91,14 +91,101 @@ CREATE TABLE IF NOT EXISTS public.services (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- Enable RLS on Services
 ALTER TABLE public.services ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Services view" ON public.services;
+CREATE POLICY "Services view" ON public.services FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Services insert" ON public.services;
+CREATE POLICY "Services insert" ON public.services FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Services update" ON public.services;
+CREATE POLICY "Services update" ON public.services FOR UPDATE USING (true);
 
-DROP POLICY IF EXISTS "Services are viewable by everyone" ON public.services;
-CREATE POLICY "Services are viewable by everyone" ON public.services FOR SELECT USING (true);
 
-DROP POLICY IF EXISTS "Allow service inserts" ON public.services;
-CREATE POLICY "Allow service inserts" ON public.services FOR INSERT WITH CHECK (true);
+-- --------------------------------------------------------
+-- 4. CONTACT INFO TABLE (Studio Details)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.contact_info (
+  id TEXT PRIMARY KEY DEFAULT 'main',
+  email TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  guarantee TEXT NOT NULL,
+  availability TEXT NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
 
-DROP POLICY IF EXISTS "Allow service updates" ON public.services;
-CREATE POLICY "Allow service updates" ON public.services FOR UPDATE USING (true);
+ALTER TABLE public.contact_info ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Contact info view" ON public.contact_info;
+CREATE POLICY "Contact info view" ON public.contact_info FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Contact info insert" ON public.contact_info;
+CREATE POLICY "Contact info insert" ON public.contact_info FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Contact info update" ON public.contact_info;
+CREATE POLICY "Contact info update" ON public.contact_info FOR UPDATE USING (true);
+
+
+-- --------------------------------------------------------
+-- 5. TECH STACK TABLE (Technology Matrix)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.tech_stack (
+  id TEXT PRIMARY KEY,
+  name TEXT UNIQUE NOT NULL,
+  cat TEXT NOT NULL,
+  level TEXT DEFAULT 'Expert',
+  desc_text TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.tech_stack ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Tech stack view" ON public.tech_stack;
+CREATE POLICY "Tech stack view" ON public.tech_stack FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Tech stack insert" ON public.tech_stack;
+CREATE POLICY "Tech stack insert" ON public.tech_stack FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Tech stack delete" ON public.tech_stack;
+CREATE POLICY "Tech stack delete" ON public.tech_stack FOR DELETE USING (true);
+DROP POLICY IF EXISTS "Tech stack update" ON public.tech_stack;
+CREATE POLICY "Tech stack update" ON public.tech_stack FOR UPDATE USING (true);
+
+
+-- --------------------------------------------------------
+-- 6. ESTIMATOR CONFIG TABLE (Cost Calculator Pricing Matrix)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.estimator_config (
+  id TEXT PRIMARY KEY DEFAULT 'default',
+  web_app_price NUMERIC DEFAULT 2400,
+  mobile_app_price NUMERIC DEFAULT 3200,
+  ecommerce_price NUMERIC DEFAULT 2800,
+  ai_automation_price NUMERIC DEFAULT 3000,
+  full_platform_price NUMERIC DEFAULT 5500,
+  auth_price NUMERIC DEFAULT 400,
+  payments_price NUMERIC DEFAULT 500,
+  admin_price NUMERIC DEFAULT 650,
+  ai_feature_price NUMERIC DEFAULT 800,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.estimator_config ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Estimator config view" ON public.estimator_config;
+CREATE POLICY "Estimator config view" ON public.estimator_config FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Estimator config insert" ON public.estimator_config;
+CREATE POLICY "Estimator config insert" ON public.estimator_config FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Estimator config update" ON public.estimator_config;
+CREATE POLICY "Estimator config update" ON public.estimator_config FOR UPDATE USING (true);
+
+
+-- --------------------------------------------------------
+-- 7. INQUIRIES TABLE (Client Lead Submissions)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.inquiries (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  service_type TEXT NOT NULL,
+  budget_range TEXT NOT NULL,
+  message TEXT NOT NULL,
+  status TEXT DEFAULT 'new' CHECK (status IN ('new', 'contacted', 'closed')),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.inquiries ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Inquiries insert" ON public.inquiries;
+CREATE POLICY "Inquiries insert" ON public.inquiries FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Inquiries view" ON public.inquiries;
+CREATE POLICY "Inquiries view" ON public.inquiries FOR SELECT USING (true);
