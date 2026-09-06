@@ -1,0 +1,85 @@
+/* CODEXA Design System & Theme Tokens */
+
+:root {
+  /* Default Dark Theme */
+  --bg-primary: #07090e;
+  --bg-secondary: #0d121d;
+  --bg-card: rgba(18, 25, 40, 0.75);
+  --bg-card-hover: rgba(26, 36, 56, 0.85);
+  --bg-glass: rgba(15, 23, 38, 0.65);
+  --bg-glass-heavy: rgba(10, 15, 26, 0.85);
+
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-color-hover: rgba(0, 240, 255, 0.3);
+  --border-color-glow: rgba(112, 0, 255, 0.4);
+
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+
+  --accent-cyan: #00f0ff;
+  --accent-purple: #7000ff;
+  --accent-magenta: #ff007a;
+  --accent-emerald: #00ff9d;
+  --accent-amber: #ffb800;
+
+  --gradient-primary: linear-gradient(135deg, #00f0ff 0%, #7000ff 100%);
+  --gradient-secondary: linear-gradient(135deg, #7000ff 0%, #ff007a 100%);
+  --gradient-emerald: linear-gradient(135deg, #00ff9d 0%, #00f0ff 100%);
+  --gradient-dark: linear-gradient(180deg, rgba(7, 9, 14, 0.3) 0%, rgba(13, 18, 29, 0.9) 100%);
+  --gradient-glow: radial-gradient(circle at 50% 0%, rgba(0, 240, 255, 0.15) 0%, rgba(112, 0, 255, 0.05) 50%, transparent 80%);
+
+  --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
+  --shadow-glow-cyan: 0 0 25px rgba(0, 240, 255, 0.25);
+  --shadow-glow-purple: 0 0 25px rgba(112, 0, 255, 0.3);
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+
+  --font-heading: 'Outfit', -apple-system, sans-serif;
+  --font-body: 'Inter', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Light Theme Override */
+[data-theme="light"] {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #f1f5f9;
+  --bg-card: rgba(255, 255, 255, 0.85);
+  --bg-card-hover: rgba(255, 255, 255, 0.98);
+  --bg-glass: rgba(255, 255, 255, 0.75);
+  --bg-glass-heavy: rgba(241, 245, 249, 0.9);
+
+  --border-color: rgba(15, 23, 42, 0.08);
+  --border-color-hover: rgba(0, 163, 255, 0.4);
+  --border-color-glow: rgba(112, 0, 255, 0.3);
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+
+  --accent-cyan: #0077ff;
+  --accent-purple: #6200ee;
+  --accent-magenta: #d80068;
+  --accent-emerald: #00a86b;
+  --accent-amber: #d97706;
+
+  --gradient-primary: linear-gradient(135deg, #0077ff 0%, #6200ee 100%);
+  --gradient-secondary: linear-gradient(135deg, #6200ee 0%, #d80068 100%);
+  --gradient-dark: linear-gradient(180deg, rgba(248, 250, 252, 0.5) 0%, rgba(241, 245, 249, 0.95) 100%);
+  --gradient-glow: radial-gradient(circle at 50% 0%, rgba(0, 119, 255, 0.12) 0%, rgba(98, 0, 238, 0.04) 50%, transparent 80%);
+
+  --shadow-sm: 0 2px 4px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 8px 20px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 16px 32px rgba(15, 23, 42, 0.12);
+  --shadow-glow-cyan: 0 0 20px rgba(0, 119, 255, 0.18);
+  --shadow-glow-purple: 0 0 20px rgba(98, 0, 238, 0.18);
+}

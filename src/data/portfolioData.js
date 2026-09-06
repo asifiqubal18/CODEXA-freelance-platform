@@ -1,0 +1,80 @@
+export const initialPortfolioData = [
+  {
+    id: "proj-1",
+    title: "ApexPay - FinTech Mobile Wallet",
+    category: "Mobile App Development",
+    client: "Apex Financial Inc.",
+    description: "Next-gen mobile banking and crypto-fiat wallet app built with React Native and Node.js backend. Features biometrics, instant transfer, and QR payments.",
+    image: "https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=800&q=80",
+    tags: ["React Native", "Node.js", "Web3", "Stripe API"],
+    metrics: "+280% Active Users in 3 Months",
+    liveUrl: "https://example.com/apexpay",
+    featured: true,
+    createdAt: "2026-08-15"
+  },
+  {
+    id: "proj-2",
+    title: "Synthetix AI - SaaS Analytics Dashboard",
+    category: "Web Development",
+    client: "Synthetix Labs",
+    description: "Enterprise analytics dashboard with real-time data visualization, predictive AI metrics, and customizable chart widgets using Next.js 14.",
+    image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80",
+    tags: ["Next.js", "TypeScript", "Tailwind CSS", "Recharts"],
+    metrics: "Sub-100ms Page Loads",
+    liveUrl: "https://example.com/synthetix",
+    featured: true,
+    createdAt: "2026-08-20"
+  },
+  {
+    id: "proj-3",
+    title: "AuraCare - Health & Telemedicine Platform",
+    category: "Mobile App Development",
+    client: "Aura Health Solutions",
+    description: "HIPAA-compliant telemedicine app connecting patients with top medical specialists via encrypted video consults and digital prescription management.",
+    image: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=80",
+    tags: ["Flutter", "WebRTC", "Firebase", "AWS S3"],
+    metrics: "4.9/5 Star App Store Rating",
+    liveUrl: "https://example.com/auracare",
+    featured: true,
+    createdAt: "2026-07-28"
+  },
+  {
+    id: "proj-4",
+    title: "Velox - High-Fashion E-Commerce Store",
+    category: "Web Development",
+    client: "Velox Luxury Goods",
+    description: "Headless Shopify e-commerce web platform featuring 3D product previews, instant filter search, and dynamic multi-currency checkout.",
+    image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=800&q=80",
+    tags: ["React", "Shopify Storefront API", "Three.js", "CSS Modules"],
+    metrics: "+42% Conversion Rate Boost",
+    liveUrl: "https://example.com/velox",
+    featured: false,
+    createdAt: "2026-07-10"
+  },
+  {
+    id: "proj-5",
+    title: "NeuroDoc - AI Medical Document Analyzer",
+    category: "AI & Automation",
+    client: "BioMed Analytics",
+    description: "AI platform parsing clinical trial documents and medical reports into structured JSON datasets using custom OCR and RAG models.",
+    image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80",
+    tags: ["Python", "OpenAI GPT-4", "Pinecone", "FastAPI"],
+    metrics: "90% Reduction in Review Time",
+    liveUrl: "https://example.com/neurodoc",
+    featured: true,
+    createdAt: "2026-06-30"
+  },
+  {
+    id: "proj-6",
+    title: "Lumina Design System & UI Kit",
+    category: "UI/UX Design",
+    client: "Lumina Software",
+    description: "Comprehensive dark & light theme design system containing 250+ accessible UI components, icons, and micro-interaction guidelines.",
+    image: "https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?auto=format&fit=crop&w=800&q=80",
+    tags: ["Figma", "Design Tokens", "Accessibility WCAG"],
+    metrics: "Adopted by 50+ Dev Teams",
+    liveUrl: "https://example.com/lumina",
+    featured: false,
+    createdAt: "2026-06-12"
+  }
+];
