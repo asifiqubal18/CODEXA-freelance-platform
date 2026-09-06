@@ -1,17 +1,36 @@
 import React, { useState } from 'react';
-import { Briefcase, ExternalLink, PlusCircle, Trash2, Award, ArrowUpRight, Filter } from 'lucide-react';
+import { Briefcase, ExternalLink, PlusCircle, Trash2, Award, ArrowUpRight, Shield } from 'lucide-react';
 import ProjectModal from './ProjectModal';
+import { useAuth } from '../context/AuthContext';
 import '../styles/Portfolio.css';
 
 export default function PortfolioSection({ projects, onOpenAddProject, onDeleteProject }) {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [activeModalProject, setActiveModalProject] = useState(null);
+  const { isAdmin, setIsAuthModalOpen } = useAuth();
 
   const categories = ['All', 'Web Development', 'Mobile App Development', 'UI/UX Design', 'AI & Automation'];
 
   const filteredProjects = selectedCategory === 'All'
     ? projects
     : projects.filter(p => p.category === selectedCategory);
+
+  const handleAddProjectClick = () => {
+    if (!isAdmin) {
+      alert('Access Denied: Only authenticated Admin users can add portfolio projects. Please sign in as Admin.');
+      setIsAuthModalOpen(true);
+      return;
+    }
+    onOpenAddProject();
+  };
+
+  const handleDeleteClick = (projId) => {
+    if (!isAdmin) {
+      alert('Access Denied: Only authenticated Admin users can delete portfolio projects.');
+      return;
+    }
+    onDeleteProject(projId);
+  };
 
   return (
     <section id="portfolio" className="section">
@@ -46,10 +65,22 @@ export default function PortfolioSection({ projects, onOpenAddProject, onDeleteP
           </div>
 
           {/* Admin Manual Project Trigger */}
-          <button className="admin-badge-btn" onClick={onOpenAddProject}>
-            <PlusCircle size={16} />
-            <span>+ Add Project to Client Showcase</span>
-          </button>
+          {isAdmin ? (
+            <button className="admin-badge-btn" onClick={handleAddProjectClick}>
+              <PlusCircle size={16} />
+              <span>+ Add Project to Showcase</span>
+            </button>
+          ) : (
+            <button 
+              className="admin-badge-btn" 
+              style={{ opacity: 0.7 }} 
+              onClick={handleAddProjectClick}
+              title="Admin Privilege Required to Add Projects"
+            >
+              <Shield size={14} />
+              <span>Admin: + Add Project</span>
+            </button>
+          )}
         </div>
 
         {/* Portfolio Grid */}
@@ -94,12 +125,12 @@ export default function PortfolioSection({ projects, onOpenAddProject, onDeleteP
                     <ArrowUpRight size={14} />
                   </button>
 
-                  {proj.isCustomAdded && (
+                  {proj.isCustomAdded && isAdmin && (
                     <button 
                       className="btn btn-outline btn-sm" 
                       style={{ borderColor: 'rgba(255, 0, 122, 0.4)', color: 'var(--accent-magenta)' }}
-                      onClick={() => onDeleteProject(proj.id)}
-                      title="Remove Custom Project"
+                      onClick={() => handleDeleteClick(proj.id)}
+                      title="Admin: Remove Custom Project"
                     >
                       <Trash2 size={14} />
                     </button>
@@ -121,3 +152,4 @@ export default function PortfolioSection({ projects, onOpenAddProject, onDeleteP
     </section>
   );
 }
+

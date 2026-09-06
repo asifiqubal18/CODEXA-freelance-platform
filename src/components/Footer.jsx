@@ -1,8 +1,20 @@
 import React from 'react';
 import { Zap, Send, Github, Twitter, Linkedin, Heart } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import '../styles/Footer.css';
 
 export default function Footer({ onOpenAddProject }) {
+  const { isAdmin, setIsAuthModalOpen } = useAuth();
+
+  const handleAddClick = () => {
+    if (!isAdmin) {
+      alert('Access Denied: Only authenticated Admin users can add portfolio projects. Please sign in as Admin.');
+      setIsAuthModalOpen(true);
+      return;
+    }
+    onOpenAddProject();
+  };
+
   return (
     <footer className="footer">
       <div className="container">
@@ -48,9 +60,17 @@ export default function Footer({ onOpenAddProject }) {
               <li><a href="#portfolio">Client Portfolio</a></li>
               <li><a href="#process">Agile Workflow</a></li>
               <li><a href="#tech-stack">Tech Stack</a></li>
-              <li><button onClick={onOpenAddProject} style={{ background: 'none', border: 'none', color: 'var(--accent-purple)', cursor: 'pointer', fontSize: '0.9rem', textAlign: 'left', fontWeight: 600 }}>+ Add Project (Admin)</button></li>
+              <li>
+                <button 
+                  onClick={handleAddClick} 
+                  style={{ background: 'none', border: 'none', color: isAdmin ? 'var(--accent-purple)' : 'var(--text-muted)', cursor: 'pointer', fontSize: '0.9rem', textAlign: 'left', fontWeight: 600 }}
+                >
+                  {isAdmin ? '+ Add Project (Admin)' : 'Admin Portal'}
+                </button>
+              </li>
             </ul>
           </div>
+
 
           {/* Newsletter / Contact */}
           <div>

@@ -12,9 +12,13 @@ import ContactSection from './components/ContactSection';
 import ChatWidget from './components/ChatWidget';
 import Footer from './components/Footer';
 
+import AuthModal from './components/AuthModal';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { initialPortfolioData } from './data/portfolioData';
 
-export default function App() {
+function MainAppContent() {
+  const { isAdmin, isAuthModalOpen, setIsAuthModalOpen } = useAuth();
+
   // Theme State
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('codexa_theme') || 'dark';
@@ -54,12 +58,24 @@ export default function App() {
     setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
   };
 
+  const handleOpenAddProject = () => {
+    if (!isAdmin) {
+      alert('Access Denied: Only authenticated Admin users can add portfolio projects.');
+      setIsAuthModalOpen(true);
+      return;
+    }
+    setIsAddModalOpen(true);
+  };
+
   // Add Project Handler
   const handleAddProject = (newProject) => {
+    if (!isAdmin) {
+      alert('Access Denied: Only authenticated Admin users can add projects.');
+      return;
+    }
     const updated = [newProject, ...projects];
     setProjects(updated);
 
-    // Save custom projects to localStorage
     try {
       const customOnly = updated.filter(p => p.isCustomAdded);
       localStorage.setItem('codexa_custom_projects', JSON.stringify(customOnly));
@@ -70,6 +86,10 @@ export default function App() {
 
   // Delete Custom Project Handler
   const handleDeleteProject = (projId) => {
+    if (!isAdmin) {
+      alert('Access Denied: Only authenticated Admin users can delete projects.');
+      return;
+    }
     if (window.confirm('Are you sure you want to remove this project from the showcase?')) {
       const updated = projects.filter(p => p.id !== projId);
       setProjects(updated);
@@ -107,11 +127,11 @@ export default function App() {
         toggleTheme={toggleTheme} 
         currency={currency} 
         setCurrency={setCurrency}
-        onOpenAddProject={() => setIsAddModalOpen(true)}
+        onOpenAddProject={handleOpenAddProject}
       />
 
       {/* Hero Section */}
-      <Hero onOpenAddProject={() => setIsAddModalOpen(true)} />
+      <Hero onOpenAddProject={handleOpenAddProject} />
 
       {/* Services Section */}
       <ServicesSection 
@@ -128,7 +148,7 @@ export default function App() {
       {/* Portfolio Showcase Section */}
       <PortfolioSection 
         projects={projects} 
-        onOpenAddProject={() => setIsAddModalOpen(true)} 
+        onOpenAddProject={handleOpenAddProject} 
         onDeleteProject={handleDeleteProject}
       />
 
@@ -148,17 +168,33 @@ export default function App() {
       />
 
       {/* Footer */}
-      <Footer onOpenAddProject={() => setIsAddModalOpen(true)} />
+      <Footer onOpenAddProject={handleOpenAddProject} />
 
       {/* Interactive Live Chat Assistant */}
-      <ChatWidget onOpenAddProject={() => setIsAddModalOpen(true)} />
+      <ChatWidget onOpenAddProject={handleOpenAddProject} />
 
-      {/* Admin Add Project Modal */}
-      <AddProjectModal 
-        isOpen={isAddModalOpen} 
-        onClose={() => setIsAddModalOpen(false)} 
-        onAddProject={handleAddProject} 
+      {/* Protected Admin Add Project Modal */}
+      {isAdmin && (
+        <AddProjectModal 
+          isOpen={isAddModalOpen} 
+          onClose={() => setIsAddModalOpen(false)} 
+          onAddProject={handleAddProject} 
+        />
+      )}
+
+      {/* Authentication Sign In / Register Modal */}
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)} 
       />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <MainAppContent />
+    </AuthProvider>
   );
 }
