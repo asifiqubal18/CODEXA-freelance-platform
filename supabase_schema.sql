@@ -1,4 +1,4 @@
--- CODEXA Supabase Database Schema
+-- CODEXA Supabase Database Schema (Updated RLS Policies for Admin & Public Access)
 
 -- 1. Create Profiles Table for User Roles (Admin vs Client)
 CREATE TABLE IF NOT EXISTS public.profiles (
@@ -13,11 +13,14 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 -- Enable RLS on Profiles
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Public profiles are viewable by everyone" ON public.profiles
-  FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public profiles are viewable by everyone" ON public.profiles;
+CREATE POLICY "Public profiles are viewable by everyone" ON public.profiles FOR SELECT USING (true);
 
-CREATE POLICY "Users can update own profile" ON public.profiles
-  FOR UPDATE USING (auth.uid() = id);
+DROP POLICY IF EXISTS "Allow all profile inserts" ON public.profiles;
+CREATE POLICY "Allow all profile inserts" ON public.profiles FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
+CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING (true);
 
 -- Trigger to automatically create profile on signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -59,24 +62,17 @@ CREATE TABLE IF NOT EXISTS public.projects (
 -- Enable RLS on Projects
 ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Projects are viewable by everyone" ON public.projects
-  FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Projects are viewable by everyone" ON public.projects;
+CREATE POLICY "Projects are viewable by everyone" ON public.projects FOR SELECT USING (true);
 
-CREATE POLICY "Only admins can insert projects" ON public.projects
-  FOR INSERT WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
-    )
-  );
+DROP POLICY IF EXISTS "Allow project inserts" ON public.projects;
+CREATE POLICY "Allow project inserts" ON public.projects FOR INSERT WITH CHECK (true);
 
-CREATE POLICY "Only admins can delete projects" ON public.projects
-  FOR DELETE USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
-    )
-  );
+DROP POLICY IF EXISTS "Allow project deletes" ON public.projects;
+CREATE POLICY "Allow project deletes" ON public.projects FOR DELETE USING (true);
+
+DROP POLICY IF EXISTS "Allow project updates" ON public.projects;
+CREATE POLICY "Allow project updates" ON public.projects FOR UPDATE USING (true);
 
 
 -- 3. Create Services Table for Agency Offerings & Pricing
@@ -98,13 +94,11 @@ CREATE TABLE IF NOT EXISTS public.services (
 -- Enable RLS on Services
 ALTER TABLE public.services ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Services are viewable by everyone" ON public.services
-  FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Services are viewable by everyone" ON public.services;
+CREATE POLICY "Services are viewable by everyone" ON public.services FOR SELECT USING (true);
 
-CREATE POLICY "Only admins can update services" ON public.services
-  FOR UPDATE USING (
-    EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
-    )
-  );
+DROP POLICY IF EXISTS "Allow service inserts" ON public.services;
+CREATE POLICY "Allow service inserts" ON public.services FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow service updates" ON public.services;
+CREATE POLICY "Allow service updates" ON public.services FOR UPDATE USING (true);

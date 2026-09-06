@@ -96,7 +96,10 @@ function MainAppContent() {
     } catch (err) {}
 
     // Save to Supabase DB if connected
-    await createProject(newProject);
+    const result = await createProject(newProject);
+    if (result && !result.success) {
+      alert(`Supabase DB Note: ${result.error}. Make sure you executed the updated supabase_schema.sql in your Supabase SQL Editor.`);
+    }
   };
 
   // Delete Any Project Handler (Default or Custom)
@@ -114,7 +117,10 @@ function MainAppContent() {
       } catch (err) {}
 
       // Delete from Supabase DB if connected
-      await deleteProjectFromDB(projId);
+      const result = await deleteProjectFromDB(projId);
+      if (result && !result.success) {
+        alert(`Supabase DB Note: ${result.error}`);
+      }
     }
   };
 
@@ -132,8 +138,12 @@ function MainAppContent() {
     } catch (err) {}
 
     // Update in Supabase DB if connected
-    await updateServiceInDB(updatedService);
+    const result = await updateServiceInDB(updatedService);
+    if (result && !result.success) {
+      alert(`Supabase DB Note: ${result.error}`);
+    }
   };
+
 
   const handleSelectService = (service) => {
     setSelectedService(service);

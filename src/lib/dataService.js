@@ -6,8 +6,8 @@ import { servicesData as initialServicesData } from '../data/servicesData';
 async function seedServicesIfEmpty() {
   if (!isSupabaseConfigured || !supabase) return;
   try {
-    const { count } = await supabase.from('services').select('*', { count: 'exact', head: true });
-    if (count === 0) {
+    const { count, error } = await supabase.from('services').select('*', { count: 'exact', head: true });
+    if (!error && count === 0) {
       const dbServices = initialServicesData.map(s => ({
         id: s.id,
         category: s.category,
@@ -32,8 +32,8 @@ async function seedServicesIfEmpty() {
 async function seedProjectsIfEmpty() {
   if (!isSupabaseConfigured || !supabase) return;
   try {
-    const { count } = await supabase.from('projects').select('*', { count: 'exact', head: true });
-    if (count === 0) {
+    const { count, error } = await supabase.from('projects').select('*', { count: 'exact', head: true });
+    if (!error && count === 0) {
       const dbProjects = initialPortfolioData.map(p => ({
         id: p.id,
         title: p.title,
@@ -105,15 +105,20 @@ export async function createProject(project) {
           live_url: project.liveUrl,
           featured: project.featured || false,
           is_custom_added: true
-        }]);
+        }])
+        .select();
 
       if (error) {
         console.error('Supabase project insert error:', error.message);
+        return { success: false, error: error.message };
       }
+      return { success: true, data };
     } catch (e) {
       console.error('Supabase project insert exception:', e);
+      return { success: false, error: e.message };
     }
   }
+  return { success: true };
 }
 
 // Delete Portfolio Project
@@ -127,11 +132,15 @@ export async function deleteProjectFromDB(projId) {
 
       if (error) {
         console.error('Supabase project delete error:', error.message);
+        return { success: false, error: error.message };
       }
+      return { success: true };
     } catch (e) {
       console.error('Supabase project delete exception:', e);
+      return { success: false, error: e.message };
     }
   }
+  return { success: true };
 }
 
 // Fetch Agency Services
@@ -186,9 +195,13 @@ export async function updateServiceInDB(service) {
 
       if (error) {
         console.error('Supabase service update error:', error.message);
+        return { success: false, error: error.message };
       }
+      return { success: true };
     } catch (e) {
       console.error('Supabase service update exception:', e);
+      return { success: false, error: e.message };
     }
   }
+  return { success: true };
 }
