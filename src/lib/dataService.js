@@ -2,17 +2,70 @@ import { supabase, isSupabaseConfigured } from './supabaseClient';
 import { initialPortfolioData } from '../data/portfolioData';
 import { servicesData as initialServicesData } from '../data/servicesData';
 
+// Seed Initial Services to Supabase if empty
+async function seedServicesIfEmpty() {
+  if (!isSupabaseConfigured || !supabase) return;
+  try {
+    const { count } = await supabase.from('services').select('*', { count: 'exact', head: true });
+    if (count === 0) {
+      const dbServices = initialServicesData.map(s => ({
+        id: s.id,
+        category: s.category,
+        title: s.title,
+        icon_name: s.iconName,
+        short_desc: s.shortDesc,
+        base_price_usd: s.basePriceUSD,
+        timeline: s.timeline,
+        popular: s.popular,
+        tech_stack: s.techStack,
+        features: s.features,
+        detailed_description: s.detailedDescription
+      }));
+      await supabase.from('services').insert(dbServices);
+    }
+  } catch (e) {
+    console.warn('Seed services error:', e);
+  }
+}
+
+// Seed Initial Projects to Supabase if empty
+async function seedProjectsIfEmpty() {
+  if (!isSupabaseConfigured || !supabase) return;
+  try {
+    const { count } = await supabase.from('projects').select('*', { count: 'exact', head: true });
+    if (count === 0) {
+      const dbProjects = initialPortfolioData.map(p => ({
+        id: p.id,
+        title: p.title,
+        category: p.category,
+        client: p.client,
+        description: p.description,
+        image: p.image,
+        tags: p.tags,
+        metrics: p.metrics,
+        live_url: p.liveUrl,
+        featured: p.featured,
+        is_custom_added: false
+      }));
+      await supabase.from('projects').insert(dbProjects);
+    }
+  } catch (e) {
+    console.warn('Seed projects error:', e);
+  }
+}
+
 // Fetch Portfolio Projects (Supabase DB OR LocalStorage)
 export async function fetchProjects() {
   if (isSupabaseConfigured && supabase) {
     try {
+      await seedProjectsIfEmpty();
+
       const { data, error } = await supabase
         .from('projects')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (!error && data && data.length > 0) {
-        // Map database column live_url to liveUrl
         return data.map(p => ({
           ...p,
           liveUrl: p.live_url || p.liveUrl,
@@ -85,6 +138,8 @@ export async function deleteProjectFromDB(projId) {
 export async function fetchServices() {
   if (isSupabaseConfigured && supabase) {
     try {
+      await seedServicesIfEmpty();
+
       const { data, error } = await supabase
         .from('services')
         .select('*')
