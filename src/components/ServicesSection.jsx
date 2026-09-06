@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Globe, Smartphone, Figma, Cpu, Cloud, Check, ArrowRight, Sparkles, Clock } from 'lucide-react';
-import { servicesData } from '../data/servicesData';
+import { Globe, Smartphone, Figma, Cpu, Cloud, Check, ArrowRight, Sparkles, Clock, Edit3 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import '../styles/Services.css';
 
 const ICON_MAP = {
@@ -24,15 +24,15 @@ export const formatCurrency = (amountUSD, currencyCode) => {
   }
 };
 
-export default function ServicesSection({ currency, onSelectService }) {
+export default function ServicesSection({ services, currency, onSelectService, onEditService }) {
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [activeModalService, setActiveModalService] = useState(null);
+  const { isAdmin } = useAuth();
 
   const categories = ['All', 'Web Development', 'Mobile App Development', 'UI/UX Design', 'AI & Automation', 'Cloud Architecture'];
 
   const filteredServices = selectedCategory === 'All' 
-    ? servicesData 
-    : servicesData.filter(s => s.category === selectedCategory);
+    ? services 
+    : services.filter(s => s.category === selectedCategory);
 
   return (
     <section id="services" className="section">
@@ -75,8 +75,21 @@ export default function ServicesSection({ currency, onSelectService }) {
                   <span className="service-badge-popular">Popular</span>
                 )}
                 
-                <div className="service-icon-wrapper">
-                  <IconComponent size={28} />
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div className="service-icon-wrapper">
+                    <IconComponent size={28} />
+                  </div>
+                  {isAdmin && (
+                    <button 
+                      className="btn btn-outline btn-sm" 
+                      onClick={() => onEditService(service)}
+                      title="Admin: Edit Price & Service Scope"
+                      style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem', borderColor: 'var(--accent-purple)', color: 'var(--accent-purple)' }}
+                    >
+                      <Edit3 size={13} />
+                      <span>Edit Price</span>
+                    </button>
+                  )}
                 </div>
 
                 <h3 className="service-title">{service.title}</h3>

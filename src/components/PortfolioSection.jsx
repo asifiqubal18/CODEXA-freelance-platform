@@ -125,12 +125,12 @@ export default function PortfolioSection({ projects, onOpenAddProject, onDeleteP
                     <ArrowUpRight size={14} />
                   </button>
 
-                  {proj.isCustomAdded && isAdmin && (
+                  {isAdmin && (
                     <button 
                       className="btn btn-outline btn-sm" 
                       style={{ borderColor: 'rgba(255, 0, 122, 0.4)', color: 'var(--accent-magenta)' }}
                       onClick={() => handleDeleteClick(proj.id)}
-                      title="Admin: Remove Custom Project"
+                      title="Admin: Delete Project from Showcase"
                     >
                       <Trash2 size={14} />
                     </button>
@@ -140,6 +140,7 @@ export default function PortfolioSection({ projects, onOpenAddProject, onDeleteP
             </div>
           ))}
         </div>
+
 
         {/* Case Study Detail Modal */}
         {activeModalProject && (
