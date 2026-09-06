@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, Phone, MapPin, Send, CheckCircle2, Clock, Calendar, Sparkles } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, CheckCircle2, Clock, Calendar, Sparkles, Edit3 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import '../styles/Contact.css';
 
-export default function ContactSection({ selectedService, prefilledEstimate }) {
+export default function ContactSection({ contactInfo, selectedService, prefilledEstimate, onEditContact }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -10,6 +11,7 @@ export default function ContactSection({ selectedService, prefilledEstimate }) {
   const [budgetRange, setBudgetRange] = useState('$5k - $10k');
   const [message, setMessage] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const { isAdmin } = useAuth();
 
   useEffect(() => {
     if (selectedService) {
@@ -28,6 +30,13 @@ export default function ContactSection({ selectedService, prefilledEstimate }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     setSubmitted(true);
+  };
+
+  const info = contactInfo || {
+    email: 'hello@codexa.io',
+    phone: '+1 (800) 555-CODEXA',
+    guarantee: 'Within 4 Business Hours',
+    availability: 'Available for Q3/Q4 Project Bookings'
   };
 
   return (
@@ -49,7 +58,19 @@ export default function ContactSection({ selectedService, prefilledEstimate }) {
 
         <div className="contact-grid">
           {/* Left Info Card */}
-          <div className="glass-card contact-info-card">
+          <div className="glass-card contact-info-card" style={{ position: 'relative' }}>
+            {isAdmin && (
+              <button 
+                className="btn btn-outline btn-sm" 
+                style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', fontSize: '0.8rem', borderColor: 'var(--accent-purple)', color: 'var(--accent-purple)' }}
+                onClick={onEditContact}
+                title="Admin: Edit Contact Details"
+              >
+                <Edit3 size={13} />
+                <span>Edit Contact</span>
+              </button>
+            )}
+
             <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '1rem' }}>
               CODEXA Studio
             </h3>
@@ -63,7 +84,7 @@ export default function ContactSection({ selectedService, prefilledEstimate }) {
               </div>
               <div>
                 <div className="contact-method-title">Direct Email</div>
-                <div className="contact-method-detail">hello@codexa.io</div>
+                <div className="contact-method-detail">{info.email}</div>
               </div>
             </div>
 
@@ -73,7 +94,7 @@ export default function ContactSection({ selectedService, prefilledEstimate }) {
               </div>
               <div>
                 <div className="contact-method-title">Call / WhatsApp</div>
-                <div className="contact-method-detail">+1 (800) 555-CODEXA</div>
+                <div className="contact-method-detail">{info.phone}</div>
               </div>
             </div>
 
@@ -83,17 +104,18 @@ export default function ContactSection({ selectedService, prefilledEstimate }) {
               </div>
               <div>
                 <div className="contact-method-title">Response Guarantee</div>
-                <div className="contact-method-detail">Within 4 Business Hours</div>
+                <div className="contact-method-detail">{info.guarantee}</div>
               </div>
             </div>
 
             <div style={{ marginTop: 'auto', paddingTop: '1.5rem', borderTop: '1px solid var(--border-color)' }}>
               <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <Calendar size={16} color="var(--accent-emerald)" />
-                <span>Available for Q3/Q4 Project Bookings</span>
+                <span>{info.availability}</span>
               </div>
             </div>
           </div>
+
 
           {/* Right Form */}
           <div className="glass-card" style={{ padding: '2.5rem' }}>

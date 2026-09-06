@@ -1,21 +1,26 @@
 import React, { useState } from 'react';
-import { Calculator, CheckSquare, Square, Clock, ShieldCheck, Send, Sparkles, Sliders } from 'lucide-react';
+import { Calculator, CheckSquare, Square, Clock, ShieldCheck, Send, Sparkles, Sliders, Edit3 } from 'lucide-react';
 import { formatCurrency } from './ServicesSection';
+import { useAuth } from '../context/AuthContext';
 import '../styles/Estimator.css';
 
-export default function ProjectEstimator({ currency, onBookEstimate }) {
+export default function ProjectEstimator({ currency, estimatorConfig, onBookEstimate, onEditEstimatorClick }) {
   // State options
   const [platform, setPlatform] = useState('web-app');
   const [designLevel, setDesignLevel] = useState('premium');
   const [selectedFeatures, setSelectedFeatures] = useState(['auth', 'payments', 'admin']);
   const [urgency, setUrgency] = useState('standard');
+  const { isAdmin } = useAuth();
+
+  const cfgPlatforms = estimatorConfig?.platforms || {};
+  const cfgFeatures = estimatorConfig?.features || {};
 
   const platforms = [
-    { id: 'web-app', name: 'Web Application', basePrice: 2400, days: 18, desc: 'React/Next.js dynamic web platform' },
-    { id: 'mobile-app', name: 'Mobile App (iOS/Android)', basePrice: 3200, days: 25, desc: 'React Native or Flutter mobile application' },
-    { id: 'ecommerce', name: 'E-Commerce Storefront', basePrice: 2800, days: 20, desc: 'Headless storefront with Stripe integration' },
-    { id: 'ai-automation', name: 'AI & Bot Integration', basePrice: 3000, days: 21, desc: 'Custom OpenAI/LLM bot & RAG system' },
-    { id: 'full-platform', name: 'Full Web + Mobile Suite', basePrice: 5500, days: 38, desc: 'Complete web portal + mobile app ecosystem' }
+    { id: 'web-app', name: 'Web Application', basePrice: cfgPlatforms['web-app'] || 2400, days: 18, desc: 'React/Next.js dynamic web platform' },
+    { id: 'mobile-app', name: 'Mobile App (iOS/Android)', basePrice: cfgPlatforms['mobile-app'] || 3200, days: 25, desc: 'React Native or Flutter mobile application' },
+    { id: 'ecommerce', name: 'E-Commerce Storefront', basePrice: cfgPlatforms['ecommerce'] || 2800, days: 20, desc: 'Headless storefront with Stripe integration' },
+    { id: 'ai-automation', name: 'AI & Bot Integration', basePrice: cfgPlatforms['ai-automation'] || 3000, days: 21, desc: 'Custom OpenAI/LLM bot & RAG system' },
+    { id: 'full-platform', name: 'Full Web + Mobile Suite', basePrice: cfgPlatforms['full-platform'] || 5500, days: 38, desc: 'Complete web portal + mobile app ecosystem' }
   ];
 
   const designLevels = [
@@ -25,15 +30,16 @@ export default function ProjectEstimator({ currency, onBookEstimate }) {
   ];
 
   const featuresList = [
-    { id: 'auth', name: 'User Auth & Role Management', price: 400 },
-    { id: 'payments', name: 'Payment Gateway (Stripe/PayPal)', price: 500 },
-    { id: 'admin', name: 'CMS & Admin Dashboard', price: 650 },
+    { id: 'auth', name: 'User Auth & Role Management', price: cfgFeatures['auth'] || 400 },
+    { id: 'payments', name: 'Payment Gateway (Stripe/PayPal)', price: cfgFeatures['payments'] || 500 },
+    { id: 'admin', name: 'CMS & Admin Dashboard', price: cfgFeatures['admin'] || 650 },
     { id: 'realtime', name: 'Real-time Chat & WebSockets', price: 600 },
-    { id: 'ai', name: 'OpenAI / LLM Bot Features', price: 800 },
+    { id: 'ai', name: 'OpenAI / LLM Bot Features', price: cfgFeatures['ai'] || 800 },
     { id: 'cloud', name: 'AWS Cloud & Automated CI/CD', price: 550 },
     { id: 'seo', name: 'Advanced SEO & Analytics', price: 350 },
     { id: 'multi-lang', name: 'Multi-Language Localization', price: 400 }
   ];
+
 
   const urgencyLevels = [
     { id: 'standard', name: 'Standard Timeline', multiplier: 1.0, label: 'Normal Pace' },
@@ -84,14 +90,29 @@ export default function ProjectEstimator({ currency, onBookEstimate }) {
             <Calculator size={14} />
             <span>Interactive Cost Calculator</span>
           </div>
-          <h2 className="section-title">
-            Calculate Your Project Estimate <br />
-            <span className="text-gradient">In Seconds</span>
-          </h2>
-          <p className="section-subtitle">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+            <h2 className="section-title" style={{ margin: 0 }}>
+              Calculate Your Project Estimate <br />
+              <span className="text-gradient">In Seconds</span>
+            </h2>
+          </div>
+          <p className="section-subtitle" style={{ marginTop: '1rem' }}>
             Customize project scope, features, design level, and urgency to get an instant cost and timeline estimate.
           </p>
+          {isAdmin && (
+            <div style={{ marginTop: '1.25rem' }}>
+              <button 
+                className="admin-badge-btn" 
+                onClick={onEditEstimatorClick}
+                title="Admin: Edit Platform & Feature Rates"
+              >
+                <Edit3 size={15} />
+                <span>Admin: Edit Pricing Matrix</span>
+              </button>
+            </div>
+          )}
         </div>
+
 
         <div className="estimator-card glass-card">
           <div className="estimator-grid">
