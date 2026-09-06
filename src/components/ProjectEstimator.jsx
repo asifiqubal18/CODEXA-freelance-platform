@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calculator, CheckSquare, Square, Clock, ShieldCheck, Send, Sparkles, Sliders, Edit3 } from 'lucide-react';
+import { Calculator, CheckSquare, Square, Clock, ShieldCheck, Send, Sparkles, Sliders, Edit3, Shield } from 'lucide-react';
 import { formatCurrency } from './ServicesSection';
 import { useAuth } from '../context/AuthContext';
 import '../styles/Estimator.css';
@@ -10,7 +10,7 @@ export default function ProjectEstimator({ currency, estimatorConfig, onBookEsti
   const [designLevel, setDesignLevel] = useState('premium');
   const [selectedFeatures, setSelectedFeatures] = useState(['auth', 'payments', 'admin']);
   const [urgency, setUrgency] = useState('standard');
-  const { isAdmin } = useAuth();
+  const { isAdmin, setIsAuthModalOpen } = useAuth();
 
   const cfgPlatforms = estimatorConfig?.platforms || {};
   const cfgFeatures = estimatorConfig?.features || {};
@@ -40,7 +40,6 @@ export default function ProjectEstimator({ currency, estimatorConfig, onBookEsti
     { id: 'multi-lang', name: 'Multi-Language Localization', price: 400 }
   ];
 
-
   const urgencyLevels = [
     { id: 'standard', name: 'Standard Timeline', multiplier: 1.0, label: 'Normal Pace' },
     { id: 'fast', name: 'Fast Track (2x Team)', multiplier: 1.25, label: '+25% Priority' },
@@ -54,6 +53,15 @@ export default function ProjectEstimator({ currency, estimatorConfig, onBookEsti
     } else {
       setSelectedFeatures([...selectedFeatures, id]);
     }
+  };
+
+  const handleEditClick = () => {
+    if (!isAdmin) {
+      alert('Access Denied: Only authenticated Admin users can edit calculator rates. Please sign in as Admin.');
+      setIsAuthModalOpen(true);
+      return;
+    }
+    onEditEstimatorClick();
   };
 
   // Calculation Logic
@@ -85,34 +93,33 @@ export default function ProjectEstimator({ currency, estimatorConfig, onBookEsti
   return (
     <section id="estimator" className="section">
       <div className="container">
+        {/* Section Header */}
         <div className="section-header">
           <div className="section-tag">
             <Calculator size={14} />
             <span>Interactive Cost Calculator</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-            <h2 className="section-title" style={{ margin: 0 }}>
-              Calculate Your Project Estimate <br />
-              <span className="text-gradient">In Seconds</span>
-            </h2>
-          </div>
-          <p className="section-subtitle" style={{ marginTop: '1rem' }}>
+          <h2 className="section-title">
+            Calculate Your Project Estimate <br />
+            <span className="text-gradient">In Seconds</span>
+          </h2>
+          <p className="section-subtitle">
             Customize project scope, features, design level, and urgency to get an instant cost and timeline estimate.
           </p>
-          {isAdmin && (
-            <div style={{ marginTop: '1.25rem' }}>
-              <button 
-                className="admin-badge-btn" 
-                onClick={onEditEstimatorClick}
-                title="Admin: Edit Platform & Feature Rates"
-              >
-                <Edit3 size={15} />
-                <span>Admin: Edit Pricing Matrix</span>
-              </button>
-            </div>
-          )}
+          
+          {/* Prominent Admin Edit Button */}
+          <div style={{ marginTop: '1.25rem' }}>
+            <button 
+              className="admin-badge-btn" 
+              onClick={handleEditClick}
+              style={{ padding: '0.6rem 1.25rem', fontSize: '0.95rem' }}
+              title="Admin: Edit Pricing Rates Matrix"
+            >
+              <Edit3 size={16} />
+              <span>{isAdmin ? '✏️ Edit Calculator Rates & Pricing Matrix' : '🔒 Admin: Edit Calculator Rates'}</span>
+            </button>
+          </div>
         </div>
-
 
         <div className="estimator-card glass-card">
           <div className="estimator-grid">
@@ -120,9 +127,19 @@ export default function ProjectEstimator({ currency, estimatorConfig, onBookEsti
             <div className="estimator-steps">
               {/* Step 1: Select Platform */}
               <div>
-                <div className="step-group-title">
-                  <Sliders size={18} color="var(--accent-cyan)" />
-                  <span>1. Select Platform & Product Type</span>
+                <div className="step-group-title" style={{ justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                    <Sliders size={18} color="var(--accent-cyan)" />
+                    <span>1. Select Platform & Product Type</span>
+                  </div>
+                  {isAdmin && (
+                    <button 
+                      style={{ background: 'none', border: 'none', color: 'var(--accent-cyan)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+                      onClick={handleEditClick}
+                    >
+                      <Edit3 size={13} /> Edit Rates
+                    </button>
+                  )}
                 </div>
                 <div className="option-cards-grid">
                   {platforms.map(p => (
@@ -131,7 +148,10 @@ export default function ProjectEstimator({ currency, estimatorConfig, onBookEsti
                       className={`option-card ${platform === p.id ? 'selected' : ''}`}
                       onClick={() => setPlatform(p.id)}
                     >
-                      <div className="option-title">{p.name}</div>
+                      <div className="option-title" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span>{p.name}</span>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--accent-cyan)' }}>{formatCurrency(p.basePrice, currency)}</span>
+                      </div>
                       <div className="option-subtitle">{p.desc}</div>
                     </div>
                   ))}
@@ -160,9 +180,19 @@ export default function ProjectEstimator({ currency, estimatorConfig, onBookEsti
 
               {/* Step 3: Add Features */}
               <div>
-                <div className="step-group-title">
-                  <CheckSquare size={18} color="var(--accent-emerald)" />
-                  <span>3. Include Key Features & Integrations</span>
+                <div className="step-group-title" style={{ justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                    <CheckSquare size={18} color="var(--accent-emerald)" />
+                    <span>3. Include Key Features & Integrations</span>
+                  </div>
+                  {isAdmin && (
+                    <button 
+                      style={{ background: 'none', border: 'none', color: 'var(--accent-purple)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.3rem' }}
+                      onClick={handleEditClick}
+                    >
+                      <Edit3 size={13} /> Edit Feature Prices
+                    </button>
+                  )}
                 </div>
                 <div className="features-checkbox-grid">
                   {featuresList.map(f => {
@@ -172,9 +202,13 @@ export default function ProjectEstimator({ currency, estimatorConfig, onBookEsti
                         key={f.id} 
                         className={`checkbox-card ${isChecked ? 'selected' : ''}`}
                         onClick={() => toggleFeature(f.id)}
+                        style={{ justifyContent: 'space-between' }}
                       >
-                        {isChecked ? <CheckSquare size={18} color="var(--accent-purple)" /> : <Square size={18} color="var(--text-muted)" />}
-                        <span>{f.name}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                          {isChecked ? <CheckSquare size={18} color="var(--accent-purple)" /> : <Square size={18} color="var(--text-muted)" />}
+                          <span>{f.name}</span>
+                        </div>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--accent-cyan)', fontWeight: 600 }}>+{formatCurrency(f.price, currency)}</span>
                       </div>
                     );
                   })}
@@ -215,7 +249,7 @@ export default function ProjectEstimator({ currency, estimatorConfig, onBookEsti
                 <div className="summary-details-list">
                   <div className="summary-item">
                     <span className="summary-label">Selected Platform:</span>
-                    <span className="summary-value">{selectedPlatformObj.name}</span>
+                    <span className="summary-value">{selectedPlatformObj.name} ({formatCurrency(selectedPlatformObj.basePrice, currency)})</span>
                   </div>
                   <div className="summary-item">
                     <span className="summary-label">Design Tier:</span>
@@ -223,7 +257,7 @@ export default function ProjectEstimator({ currency, estimatorConfig, onBookEsti
                   </div>
                   <div className="summary-item">
                     <span className="summary-label">Add-on Features:</span>
-                    <span className="summary-value">{selectedFeatures.length} Selected</span>
+                    <span className="summary-value">{selectedFeatures.length} Selected (+{formatCurrency(featuresTotal, currency)})</span>
                   </div>
                   <div className="summary-item">
                     <span className="summary-label">Est. Turnaround:</span>
