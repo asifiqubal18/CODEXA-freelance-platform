@@ -2,6 +2,23 @@ import { supabase, isSupabaseConfigured } from './supabaseClient';
 import { initialPortfolioData } from '../data/portfolioData';
 import { servicesData as initialServicesData } from '../data/servicesData';
 
+const INITIAL_TECH_ITEMS = [
+  { name: 'React.js', cat: 'Frontend', level: 'Expert', desc: 'Component architecture & Web Vitals' },
+  { name: 'Next.js 14', cat: 'Frontend', level: 'Expert', desc: 'SSR, App Router & Server Actions' },
+  { name: 'TypeScript', cat: 'Frontend', level: 'Expert', desc: 'Type-safe enterprise applications' },
+  { name: 'React Native', cat: 'Mobile', level: 'Expert', desc: 'Cross-platform native iOS & Android' },
+  { name: 'Flutter & Dart', cat: 'Mobile', level: 'Advanced', desc: 'High-performance 60fps mobile UI' },
+  { name: 'Swift & Kotlin', cat: 'Mobile', level: 'Advanced', desc: 'Native device hardware modules' },
+  { name: 'Node.js & Express', cat: 'Backend & DB', level: 'Expert', desc: 'RESTful & GraphQL microservices' },
+  { name: 'Python & FastAPI', cat: 'Backend & DB', level: 'Expert', desc: 'High-speed AI backends & data APIs' },
+  { name: 'PostgreSQL & Redis', cat: 'Backend & DB', level: 'Expert', desc: 'Relational data & high-speed caching' },
+  { name: 'OpenAI API & GPT-4', cat: 'AI & Machine Learning', level: 'Expert', desc: 'LLM fine-tuning & prompt engineering' },
+  { name: 'LangChain & Pinecone', cat: 'AI & Machine Learning', level: 'Advanced', desc: 'RAG vector databases & AI Agents' },
+  { name: 'AWS & Serverless', cat: 'Cloud & DevOps', level: 'Expert', desc: 'Lambda, S3, CloudFront & ECS' },
+  { name: 'Docker & Kubernetes', cat: 'Cloud & DevOps', level: 'Advanced', desc: 'Microservice containerization' },
+  { name: 'GitHub Actions', cat: 'Cloud & DevOps', level: 'Expert', desc: 'Automated CI/CD pipelines' }
+];
+
 // Seed Initial Services to Supabase if empty
 async function seedServicesIfEmpty() {
   if (!isSupabaseConfigured || !supabase) return;
@@ -46,6 +63,24 @@ async function seedProjectsIfEmpty() {
         is_custom_added: false
       }));
       await supabase.from('projects').insert(dbProjects);
+    }
+  } catch (e) {}
+}
+
+// Seed Initial Tech Stack to Supabase if empty
+async function seedTechStackIfEmpty() {
+  if (!isSupabaseConfigured || !supabase) return;
+  try {
+    const { count, error } = await supabase.from('tech_stack').select('*', { count: 'exact', head: true });
+    if (!error && count === 0) {
+      const dbTech = INITIAL_TECH_ITEMS.map((t, idx) => ({
+        id: `tech-${idx}-${Date.now()}`,
+        name: t.name,
+        cat: t.cat,
+        level: t.level,
+        desc_text: t.desc
+      }));
+      await supabase.from('tech_stack').insert(dbTech);
     }
   } catch (e) {}
 }
@@ -171,7 +206,74 @@ export async function updateServiceInDB(service) {
   return { success: true };
 }
 
-// 3. CONTACT INFO
+// 3. TECH STACK
+export async function fetchTechStackFromDB() {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      await seedTechStackIfEmpty();
+      const { data, error } = await supabase
+        .from('tech_stack')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (!error && data && data.length > 0) {
+        return data.map(t => ({
+          name: t.name,
+          cat: t.cat,
+          level: t.level,
+          desc: t.desc_text || t.desc
+        }));
+      }
+    } catch (e) {}
+  }
+
+  try {
+    const saved = localStorage.getItem('codexa_tech_items');
+    if (saved) return JSON.parse(saved);
+  } catch (e) {}
+  return INITIAL_TECH_ITEMS;
+}
+
+export async function createTechItemInDB(item) {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('tech_stack')
+        .insert([{
+          id: `tech-${Date.now()}`,
+          name: item.name,
+          cat: item.cat,
+          level: item.level,
+          desc_text: item.desc
+        }]);
+
+      if (error) return { success: false, error: error.message };
+      return { success: true, data };
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
+  }
+  return { success: true };
+}
+
+export async function deleteTechItemFromDB(techName) {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { error } = await supabase
+        .from('tech_stack')
+        .delete()
+        .eq('name', techName);
+
+      if (error) return { success: false, error: error.message };
+      return { success: true };
+    } catch (e) {
+      return { success: false, error: e.message };
+    }
+  }
+  return { success: true };
+}
+
+// 4. CONTACT INFO
 export async function fetchContactInfoFromDB() {
   if (isSupabaseConfigured && supabase) {
     try {
@@ -216,7 +318,7 @@ export async function updateContactInfoInDB(contact) {
   return { success: true };
 }
 
-// 4. ESTIMATOR CONFIG PRICING MATRIX
+// 5. ESTIMATOR CONFIG PRICING MATRIX
 export async function fetchEstimatorConfigFromDB() {
   if (isSupabaseConfigured && supabase) {
     try {
@@ -281,7 +383,7 @@ export async function updateEstimatorConfigInDB(config) {
   return { success: true };
 }
 
-// 5. CLIENT CONSULTATION INQUIRIES
+// 6. CLIENT CONSULTATION INQUIRIES
 export async function submitInquiryToDB(inquiry) {
   if (isSupabaseConfigured && supabase) {
     try {

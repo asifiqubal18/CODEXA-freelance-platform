@@ -24,28 +24,14 @@ import {
   deleteProjectFromDB, 
   fetchServices, 
   updateServiceInDB,
+  fetchTechStackFromDB,
+  createTechItemInDB,
+  deleteTechItemFromDB,
   fetchContactInfoFromDB,
   updateContactInfoInDB,
   fetchEstimatorConfigFromDB,
   updateEstimatorConfigInDB
 } from './lib/dataService';
-
-const INITIAL_TECH_ITEMS = [
-  { name: 'React.js', cat: 'Frontend', level: 'Expert', desc: 'Component architecture & Web Vitals' },
-  { name: 'Next.js 14', cat: 'Frontend', level: 'Expert', desc: 'SSR, App Router & Server Actions' },
-  { name: 'TypeScript', cat: 'Frontend', level: 'Expert', desc: 'Type-safe enterprise applications' },
-  { name: 'React Native', cat: 'Mobile', level: 'Expert', desc: 'Cross-platform native iOS & Android' },
-  { name: 'Flutter & Dart', cat: 'Mobile', level: 'Advanced', desc: 'High-performance 60fps mobile UI' },
-  { name: 'Swift & Kotlin', cat: 'Mobile', level: 'Advanced', desc: 'Native device hardware modules' },
-  { name: 'Node.js & Express', cat: 'Backend & DB', level: 'Expert', desc: 'RESTful & GraphQL microservices' },
-  { name: 'Python & FastAPI', cat: 'Backend & DB', level: 'Expert', desc: 'High-speed AI backends & data APIs' },
-  { name: 'PostgreSQL & Redis', cat: 'Backend & DB', level: 'Expert', desc: 'Relational data & high-speed caching' },
-  { name: 'OpenAI API & GPT-4', cat: 'AI & Machine Learning', level: 'Expert', desc: 'LLM fine-tuning & prompt engineering' },
-  { name: 'LangChain & Pinecone', cat: 'AI & Machine Learning', level: 'Advanced', desc: 'RAG vector databases & AI Agents' },
-  { name: 'AWS & Serverless', cat: 'Cloud & DevOps', level: 'Expert', desc: 'Lambda, S3, CloudFront & ECS' },
-  { name: 'Docker & Kubernetes', cat: 'Cloud & DevOps', level: 'Advanced', desc: 'Microservice containerization' },
-  { name: 'GitHub Actions', cat: 'Cloud & DevOps', level: 'Expert', desc: 'Automated CI/CD pipelines' }
-];
 
 function MainAppContent() {
   const { isAdmin, isAuthModalOpen, setIsAuthModalOpen } = useAuth();
@@ -71,21 +57,15 @@ function MainAppContent() {
   // Portfolio State
   const [projects, setProjects] = useState([]);
 
+  // Tech Items State
+  const [techItems, setTechItems] = useState([]);
+
   // Contact Info State
   const [contactInfo, setContactInfo] = useState({
     email: 'hello@codexa.io',
     phone: '+1 (800) 555-CODEXA',
     guarantee: 'Within 4 Business Hours',
     availability: 'Available for Q3/Q4 Project Bookings'
-  });
-
-  // Tech Items State
-  const [techItems, setTechItems] = useState(() => {
-    try {
-      const saved = localStorage.getItem('codexa_tech_items');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
-    return INITIAL_TECH_ITEMS;
   });
 
   // Estimator Config Pricing Matrix State
@@ -106,6 +86,9 @@ function MainAppContent() {
 
       const loadedProjects = await fetchProjects();
       setProjects(loadedProjects);
+
+      const loadedTech = await fetchTechStackFromDB();
+      setTechItems(loadedTech);
 
       const loadedContact = await fetchContactInfoFromDB();
       if (loadedContact) setContactInfo(loadedContact);
@@ -205,16 +188,21 @@ function MainAppContent() {
   };
 
   // Admin Save Tech Stack Item
-  const handleSaveTechItem = (newItem) => {
+  const handleSaveTechItem = async (newItem) => {
     const updated = [newItem, ...techItems];
     setTechItems(updated);
     try {
       localStorage.setItem('codexa_tech_items', JSON.stringify(updated));
     } catch (e) {}
+
+    const result = await createTechItemInDB(newItem);
+    if (result && !result.success) {
+      alert(`Supabase DB Note: ${result.error}`);
+    }
   };
 
   // Admin Delete Tech Stack Item
-  const handleDeleteTech = (techName) => {
+  const handleDeleteTech = async (techName) => {
     if (!isAdmin) return;
     if (window.confirm(`Delete ${techName} from Tech Stack?`)) {
       const updated = techItems.filter(t => t.name !== techName);
@@ -222,6 +210,8 @@ function MainAppContent() {
       try {
         localStorage.setItem('codexa_tech_items', JSON.stringify(updated));
       } catch (e) {}
+
+      await deleteTechItemFromDB(techName);
     }
   };
 
